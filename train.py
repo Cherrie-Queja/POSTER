@@ -64,21 +64,21 @@ def run_training():
 
     num_classes = 7
     if args.dataset == "rafdb":
-        datapath = './data/raf-basic/'
+        datapath = './data_preprocessing/raf-basic/'
         num_classes = 7
         train_dataset = RafDataSet(datapath, train=True, transform=data_transforms, basic_aug=True)
         val_dataset = RafDataSet(datapath, train=False, transform=data_transforms_val)
         model = pyramid_trans_expr(img_size=224, num_classes=num_classes, type=args.modeltype)
 
     elif args.dataset == "affectnet":
-        datapath = './data/AffectNet/'
+        datapath = './data_preprocessing/AffectNet/'
         num_classes = 7
         train_dataset = Affectdataset(datapath, train=True, transform=data_transforms, basic_aug=True)
         val_dataset = Affectdataset(datapath, train=False, transform=data_transforms_val)
         model = pyramid_trans_expr(img_size=224, num_classes=num_classes, type=args.modeltype)
 
     elif args.dataset == "affectnet8class":
-        datapath = './data/AffectNet/'
+        datapath = './data_preprocessing/AffectNet/'
         num_classes = 8
         train_dataset = Affectdataset_8class(datapath, train=True, transform=data_transforms, basic_aug=True)
         val_dataset = Affectdataset_8class(datapath, train=False, transform=data_transforms_val)
