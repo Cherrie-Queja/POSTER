@@ -1,6 +1,11 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
+opencv-python
+pandas
+scikit-learn
+einops
+tensorboard
 _libgcc_mutex=0.1=main
 _openmp_mutex=4.5=1_gnu
 blas=1.0=mkl

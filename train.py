@@ -19,6 +19,8 @@ from utils import *
 from data_preprocessing.sam import SAM
 from models.emotion_hyp import pyramid_trans_expr
 
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter(log_dir='log/1')
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='rafdb', help='dataset')
@@ -105,17 +107,18 @@ def run_training():
 
     # model = Networks.ResNet18_ARM___RAF()
 
-    model = torch.nn.DataParallel(model)
+    # model = torch.nn.DataParallel(model)  多个GPU加载时需要添加
     model = model.cuda()
 
     print("batch_size:", args.batch_size)
 
-    if args.checkpoint:
-        print("Loading pretrained weights...", args.checkpoint)
-        checkpoint = torch.load(args.checkpoint)
-        # model.load_state_dict(checkpoint["model_state_dict"], strict=False)
-        checkpoint = checkpoint["model_state_dict"]
-        model = load_pretrained_weights(model, checkpoint)
+    # checkpoint继续上一次终端点训练
+    # if args.checkpoint:
+    #     print("Loading pretrained weights...", args.checkpoint)
+    #     checkpoint = torch.load(args.checkpoint)
+    #     # model.load_state_dict(checkpoint["model_state_dict"], strict=False)
+    #     checkpoint = checkpoint["model_state_dict"]
+    #     model = load_pretrained_weights(model, checkpoint)
 
     params = model.parameters()
     if args.optimizer == 'adamw':
@@ -134,13 +137,17 @@ def run_training():
 
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
     model = model.cuda()
+
+    # 计算网络模型参数
     parameters = filter(lambda p: p.requires_grad, model.parameters())
     parameters = sum([np.prod(p.size()) for p in parameters]) / 1_000_000
     print('Total Parameters: %.3fM' % parameters)
+
     CE_criterion = torch.nn.CrossEntropyLoss()
     lsce_criterion = LabelSmoothingCrossEntropy(smoothing=0.2)
 
-
+    total_train_acc = 0.0
+    total_val_acc = 0.0
     best_acc = 0
     for i in range(1, args.epochs + 1):
         train_loss = 0.0
@@ -179,6 +186,8 @@ def run_training():
         train_acc = correct_sum.float() / float(train_dataset.__len__())
         train_loss = train_loss / iter_cnt
         elapsed = (time() - start_time) / 60
+
+        total_train_acc = total_train_acc + train_acc
 
         print('[Epoch %d] Train time:%.2f, Training accuracy:%.4f. Loss: %.3f LR:%.6f' %
               (i, elapsed, train_acc, train_loss, optimizer.param_groups[0]["lr"]))
@@ -227,6 +236,14 @@ def run_training():
                 best_acc = val_acc
                 print("best_acc:" + str(best_acc))
 
+        total_val_acc = total_val_acc + val_acc
+
+        writer.add_scalars('loss', {'train': train_loss, 'val': val_loss}, i)
+        writer.add_scalars('acc', {'train': train_acc, 'val': val_acc}, i)
+        writer.add_scalars('score', {'f1': f1, 'total': total_socre}, i)
+
+    print('total_train_acc=', total_train_acc, ', avg_train_acc=', total_train_acc / args.epochs)
+    print('total_val_acc=', total_val_acc, ', avg_val_acc=', total_val_acc / args.epochs)
 
 if __name__ == "__main__":
     run_training()
