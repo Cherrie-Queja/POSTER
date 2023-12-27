@@ -125,17 +125,17 @@ def main():
                                                 transforms.RandomErasing(scale=(0.02, 0.1))
                                                 ])
     if args.data_type == 'RAF-DB':
-        data_path = './data_preprocessing/raf-basic'
+        data_path = '../dataset/raf-basic'  
         # feature_path = './dataset/raf-db-lbphog'
         train_dataset = RafDataSet(data_path, train=True, transform=data_transforms_train, basic_aug=True)
         test_dataset = RafDataSet(data_path, train=False, transform=data_transforms_val)
 
     if args.data_type == 'FER-Plus':
-        data_path = './dataset/FERPlus'
+        data_path = '../dataset/FERPlus'
         train_dataset = FerPlusSet(data_path, train=True, transform=data_transforms_train, basic_aug=True)
         test_dataset = FerPlusSet(data_path, train=False, transform=data_transforms_val)
     if args.data_type == 'AffectNet-7':
-        data_path = './dataset/affect'
+        data_path = '../dataset/affect'
         train_dataset = Affectdataset(data_path, train=True, transform=data_transforms_train, basic_aug=True)
         test_dataset = Affectdataset(data_path, train=False, transform=data_transforms_val)
 
